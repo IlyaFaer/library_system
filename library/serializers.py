@@ -32,6 +32,14 @@ class MemberSerializer(serializers.ModelSerializer):
         model = Member
         fields = ['id', 'user', 'user_id', 'membership_date']
 
+
+class TopMemberSerializer(serializers.Serializer):
+    id = serializers.IntegerField(read_only=True)
+    username = serializers.CharField(source="user.username", read_only=True)
+    email = serializers.CharField(source="user.email", read_only=True)
+    active_loans = serializers.IntegerField(read_only=True)
+
+
 class LoanSerializer(serializers.ModelSerializer):
     book = BookSerializer(read_only=True)
     book_id = serializers.PrimaryKeyRelatedField(
@@ -41,7 +49,16 @@ class LoanSerializer(serializers.ModelSerializer):
     member_id = serializers.PrimaryKeyRelatedField(
         queryset=Member.objects.all(), source='member', write_only=True
     )
+    due_date = serializers.DateField(read_only=True)
 
     class Meta:
         model = Loan
-        fields = ['id', 'book', 'book_id', 'member', 'member_id', 'loan_date', 'return_date', 'is_returned']
+        fields = ['id', 'book', 'book_id', 'member', 'member_id', 'loan_date', 'return_date', "due_date", 'is_returned']
+
+
+class ExtendLoanSerializer(serializers.ModelSerializer):
+    additional_days = serializers.IntegerField(min_value=1)
+
+    class Meta:
+        model = Loan
+        fields = ["id", "additional_days"]

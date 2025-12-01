@@ -1,5 +1,13 @@
+from datetime import timedelta
+
 from django.db import models
 from django.contrib.auth.models import User
+from django.utils import timezone
+
+
+def two_weeks():
+    return timezone.now().date() + timedelta(days=14)
+
 
 class Author(models.Model):
     first_name = models.CharField(max_length=100)
@@ -40,6 +48,12 @@ class Loan(models.Model):
     member = models.ForeignKey(Member, related_name='loans', on_delete=models.CASCADE)
     loan_date = models.DateField(auto_now_add=True)
     return_date = models.DateField(null=True, blank=True)
+    # as we're counting days (not even minutes), it probably doesn't
+    # make sense to implement a complicated solution with
+    # overriding save() method - such high precision is just not needed here.
+    # if there is already data in the database, it may make sense to update it
+    # with a data conversion script (only those loans that were not returned yet)
+    due_date = models.DateField(default=two_weeks)
     is_returned = models.BooleanField(default=False)
 
     def __str__(self):
